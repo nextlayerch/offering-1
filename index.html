@@ -107,6 +107,33 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef0f5;color:#222;min-h
 /* ── Tab Panels ── */
 .tab-panel{display:none}.tab-panel.active{display:block}
 
+/* ── Status Badges ── */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.76rem;font-weight:700;white-space:nowrap}
+.badge-offeriert{background:#e8f0fb;color:#1a3a5c;border:1px solid #b0c4e8}
+.badge-akzeptiert{background:#e8f5ee;color:#1a7c4e;border:1px solid #a8d8bc}
+.badge-abgelehnt{background:#fdecea;color:#c0392b;border:1px solid #f0b8b3}
+
+/* ── Saved Offers ── */
+.filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;padding:12px 16px;background:#f4f5fa;border-radius:8px}
+.filter-bar label{font-size:.78rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.filter-bar input,.filter-bar select{border:1px solid #ccd1dc;border-radius:6px;padding:6px 10px;font-size:.85rem;outline:none;font-family:inherit;background:#fff}
+.filter-bar input:focus,.filter-bar select:focus{border-color:#2a5a8c}
+.offers-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.offers-table th{background:#f4f5fa;color:#444;font-weight:700;padding:10px 10px;text-align:left;border-bottom:2px solid #dde1ea;white-space:nowrap;cursor:pointer;user-select:none}
+.offers-table th:hover{background:#e8eaf0}
+.offers-table th .sort-arrow{font-size:.7rem;margin-left:4px;opacity:.5}
+.offers-table th.sorted .sort-arrow{opacity:1;color:#1a3a5c}
+.offers-table td{padding:9px 10px;border-bottom:1px solid #f0f1f5;vertical-align:middle}
+.offers-table tr:hover td{background:#fafbff}
+.offers-table .col-nr{width:100px;font-weight:700;color:#1a3a5c}
+.offers-table .col-date{width:100px;white-space:nowrap}
+.offers-table .col-total{width:110px;text-align:right;font-weight:700}
+.offers-table .col-status{width:130px}
+.offers-table .col-act{width:120px;text-align:right;white-space:nowrap}
+.status-select{border:1px solid #ccd1dc;border-radius:6px;padding:4px 8px;font-size:.8rem;font-family:inherit;cursor:pointer;outline:none;background:#fff}
+.offers-empty{text-align:center;padding:40px;color:#aaa;font-size:.9rem}
+.offers-count{font-size:.82rem;color:#888;margin-bottom:10px}
+
 /* ══════════════════════════════════════════
    PRINT STYLES  –  professional A4 layout
 ═══════════════════════════════════════════ */
@@ -152,14 +179,47 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef0f5;color:#222;min-h
   .vat-rate-text{display:inline!important}
 }
 
+/* ── Login Screen ── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c 0%,#2a5a8c 100%);display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-box{background:#fff;border-radius:16px;padding:48px 56px;text-align:center;width:380px;box-shadow:0 24px 64px rgba(0,0,0,.35)}
+.login-box .login-title{font-size:1.5rem;font-weight:800;color:#1a3a5c;margin-bottom:6px}
+.login-box .login-sub{font-size:.88rem;color:#888;margin-bottom:32px}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:13px 20px;border:2px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;font-size:.95rem;font-weight:600;color:#333;transition:all .2s;font-family:inherit}
+.btn-google:hover{border-color:#2a5a8c;background:#f5f8ff;box-shadow:0 2px 8px rgba(42,90,140,.15)}
+.btn-google svg{flex-shrink:0}
+.login-footer{font-size:.75rem;color:#bbb;margin-top:24px}
+
+/* ── Sync Status ── */
+.sync-status{display:flex;align-items:center;gap:5px;font-size:.75rem;opacity:.85;margin-top:5px;justify-content:flex-end}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#4caf50;flex-shrink:0}
+.sync-dot.syncing{background:#ff9800;animation:syncpulse .7s infinite}
+.sync-dot.offline{background:#f44336}
+@keyframes syncpulse{0%,100%{opacity:1}50%{opacity:.2}}
+
 /* Hide print-only elements on screen */
 .print-only{display:none}
 .print-header{display:none}
 .print-footer{display:none}
 .vat-rate-text{display:none}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 </head>
 <body>
+<!-- ── Login Screen ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-title">Offerten-Tool</div>
+    <div class="login-sub">Bitte melde dich an, um fortzufahren.</div>
+    <button class="btn-google" onclick="signInWithGoogle()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.1 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 46c5.5 0 10.5-1.9 14.3-5l-6.6-5.4C29.8 37 27 38 24 38c-5.8 0-10.7-3.1-11.8-7.5l-7 5.4C8.6 42 15.8 46 24 46z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-.6 2.8-2.3 5.1-4.6 6.6l6.6 5.4C42 37.1 45 31 45 24c0-1.3-.2-2.7-.5-4z"/></svg>
+      Mit Google anmelden
+    </button>
+    <div class="login-footer">Nur autorisierte Benutzer haben Zugriff.</div>
+  </div>
+</div>
+
 <div class="app">
 
 <!-- ── App Header ── -->
@@ -168,12 +228,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef0f5;color:#222;min-h
     <h1>Offerten-Erstellung</h1>
     <div class="sub">Professionelle Offerten schnell und einfach erstellen</div>
   </div>
-  <div style="text-align:right;font-size:.8rem;opacity:.8" id="hdr-company-display"></div>
+  <div style="text-align:right">
+    <div style="font-size:.8rem;opacity:.8" id="hdr-company-display"></div>
+    <div style="display:flex;align-items:center;gap:12px;justify-content:flex-end;margin-top:4px">
+      <div class="sync-status"><div class="sync-dot syncing" id="sync-dot"></div><span id="sync-label">Verbinde…</span></div>
+      <span id="hdr-user" style="font-size:.78rem;opacity:.75"></span>
+      <button onclick="signOut()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:.75rem;font-family:inherit">Abmelden</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── Tabs ── -->
 <div class="tabs no-print">
   <div class="tab active" onclick="showTab('offerte')">Offerte</div>
+  <div class="tab" onclick="showTab('gespeichert')">Gespeicherte Offerten <span id="tab-count"></span></div>
   <div class="tab" onclick="showTab('katalog')">Artikelkatalog</div>
   <div class="tab" onclick="showTab('kunden')">Kundenkatalog</div>
   <div class="tab" onclick="showTab('einstellungen')">Einstellungen</div>
@@ -187,6 +255,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef0f5;color:#222;min-h
     <!-- Toolbar -->
     <div class="toolbar no-print">
       <button class="btn btn-green" onclick="printOffer()">&#x1F5A8; PDF / Drucken</button>
+      <button class="btn btn-primary" onclick="saveOffer()">&#x1F4BE; Speichern</button>
       <button class="btn btn-grey" onclick="addPosition()">+ Position</button>
       <button class="btn btn-grey" onclick="resetOffer()">&#x21BA; Neue Offerte</button>
       <div class="offer-nr-wrap">
@@ -354,6 +423,49 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef0f5;color:#222;min-h
   </div><!-- /tab-offerte -->
 
 
+  <!-- ════════════ GESPEICHERTE OFFERTEN TAB ════════════ -->
+  <div id="tab-gespeichert" class="tab-panel">
+
+    <div class="filter-bar">
+      <label>Kunde</label>
+      <input type="text" id="f-customer" placeholder="Suchen..." oninput="renderOfferList()" style="width:180px">
+      <label>Status</label>
+      <select id="f-status" onchange="renderOfferList()">
+        <option value="">Alle</option>
+        <option value="offeriert">Offeriert</option>
+        <option value="akzeptiert">Akzeptiert</option>
+        <option value="abgelehnt">Abgelehnt</option>
+      </select>
+      <label>Sortierung</label>
+      <select id="f-sort" onchange="renderOfferList()">
+        <option value="date-desc">Datum neu → alt</option>
+        <option value="date-asc">Datum alt → neu</option>
+        <option value="customer-asc">Kunde A → Z</option>
+        <option value="total-desc">Total hoch → tief</option>
+        <option value="total-asc">Total tief → hoch</option>
+      </select>
+    </div>
+
+    <div class="offers-count" id="offers-count"></div>
+
+    <table class="offers-table">
+      <thead>
+        <tr>
+          <th class="col-nr">Nr.</th>
+          <th class="col-date">Datum</th>
+          <th>Kunde</th>
+          <th>Betreff</th>
+          <th class="col-total">Total CHF</th>
+          <th class="col-status">Status</th>
+          <th class="col-act">Aktionen</th>
+        </tr>
+      </thead>
+      <tbody id="offers-tbody"></tbody>
+    </table>
+
+  </div><!-- /tab-gespeichert -->
+
+
   <!-- ════════════ KATALOG TAB ════════════ -->
   <div id="tab-katalog" class="tab-panel">
 
@@ -515,23 +627,55 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef0f5;color:#222;min-h
 
 <script>
 // ═══════════════════════════════════════════════
+// Firebase
+// ═══════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyA432pcku-mgeqciN4O3uZdhc-bpotv5N4",
+  authDomain: "also-offering.firebaseapp.com",
+  projectId: "also-offering",
+  storageBucket: "also-offering.firebasestorage.app",
+  messagingSenderId: "435045203366",
+  appId: "1:435045203366:web:23ed2ea19c4831ba8f6367"
+};
+firebase.initializeApp(firebaseConfig);
+const db   = firebase.firestore();
+const auth = firebase.auth();
+
+function setSyncing() {
+  const d = document.getElementById('sync-dot');
+  const l = document.getElementById('sync-label');
+  if (d) { d.className = 'sync-dot syncing'; }
+  if (l) l.textContent = 'Speichert…';
+}
+function setSynced() {
+  const d = document.getElementById('sync-dot');
+  const l = document.getElementById('sync-label');
+  if (d) { d.className = 'sync-dot'; }
+  if (l) l.textContent = 'Synchronisiert';
+}
+function setSyncError() {
+  const d = document.getElementById('sync-dot');
+  const l = document.getElementById('sync-label');
+  if (d) { d.className = 'sync-dot offline'; }
+  if (l) l.textContent = 'Sync-Fehler';
+}
+
+// ═══════════════════════════════════════════════
 // State
 // ═══════════════════════════════════════════════
 let positions = [];
 let posId = 1;
-let catalog = JSON.parse(localStorage.getItem('offerCatalog') || '[]');
-let customers = JSON.parse(localStorage.getItem('offerCustomers') || '[]');
+let catalog   = [];
+let customers = [];
+let savedOffers = [];
 let settings = JSON.parse(localStorage.getItem('offerSettings') || '{}');
+let currentSavedId = null;
 
 // ═══════════════════════════════════════════════
 // Init
 // ═══════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   loadSettings();
-  renderCatalog();
-  renderChips();
-  renderCustomerList();
-  renderCustomerChips();
   addPosition();
 
   const today = new Date();
@@ -545,7 +689,52 @@ window.addEventListener('DOMContentLoaded', () => {
 
   syncPrint();
   updateHeaderDisplay();
+
+  // Auth state → zeigt Login oder App
+  auth.onAuthStateChanged(user => {
+    const loginScreen = document.getElementById('login-screen');
+    const appEl = document.querySelector('.app');
+    if (user) {
+      loginScreen.style.display = 'none';
+      appEl.style.display = 'block';
+      const userEl = document.getElementById('hdr-user');
+      if (userEl) userEl.textContent = user.displayName || user.email;
+      setupFirestoreListeners();
+    } else {
+      loginScreen.style.display = 'flex';
+      appEl.style.display = 'none';
+    }
+  });
 });
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err => alert('Anmeldung fehlgeschlagen: ' + err.message));
+}
+
+function signOut() {
+  if (confirm('Wirklich abmelden?')) auth.signOut();
+}
+
+let listenersActive = false;
+function setupFirestoreListeners() {
+  if (listenersActive) return;
+  listenersActive = true;
+  db.collection('catalog').onSnapshot(snap => {
+    catalog = snap.docs.map(d => d.data()).sort((a,b) => (a.id||0)-(b.id||0));
+    renderCatalog(); renderChips(); setSynced();
+  }, () => setSyncError());
+
+  db.collection('customers').onSnapshot(snap => {
+    customers = snap.docs.map(d => d.data()).sort((a,b) => (a.id||0)-(b.id||0));
+    renderCustomerList(); renderCustomerChips();
+  }, () => setSyncError());
+
+  db.collection('savedOffers').onSnapshot(snap => {
+    savedOffers = snap.docs.map(d => d.data());
+    renderOfferList();
+  }, () => setSyncError());
+}
 
 function fmtDate(d) {
   return d.toISOString().split('T')[0];
@@ -555,7 +744,7 @@ function fmtDate(d) {
 // Tabs
 // ═══════════════════════════════════════════════
 function showTab(name) {
-  const names = ['offerte','katalog','kunden','einstellungen'];
+  const names = ['offerte','gespeichert','katalog','kunden','einstellungen'];
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', names[i] === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
@@ -644,28 +833,24 @@ function calcTotals() {
 function saveCatalogItem() {
   const name = document.getElementById('cat-name').value.trim();
   if (!name) { alert('Bitte eine Bezeichnung eingeben.'); return; }
-  const price = parseFloat(document.getElementById('cat-price').value) || 0;
-  catalog.push({
+  const item = {
     id: Date.now(),
     name,
     desc: document.getElementById('cat-desc').value.trim(),
-    price,
+    price: parseFloat(document.getElementById('cat-price').value) || 0,
     unit: document.getElementById('cat-unit').value
-  });
-  localStorage.setItem('offerCatalog', JSON.stringify(catalog));
+  };
   document.getElementById('cat-name').value = '';
   document.getElementById('cat-desc').value = '';
   document.getElementById('cat-price').value = '';
-  renderCatalog();
-  renderChips();
+  setSyncing();
+  db.collection('catalog').doc(String(item.id)).set(item).then(setSynced).catch(setSyncError);
 }
 
 function deleteCatalogItem(id) {
   if (!confirm('Artikel aus dem Katalog entfernen?')) return;
-  catalog = catalog.filter(c => c.id !== id);
-  localStorage.setItem('offerCatalog', JSON.stringify(catalog));
-  renderCatalog();
-  renderChips();
+  setSyncing();
+  db.collection('catalog').doc(String(id)).delete().then(setSynced).catch(setSyncError);
 }
 
 function addFromCatalog(id) {
@@ -726,6 +911,7 @@ function saveSettings() {
   localStorage.setItem('offerSettings', JSON.stringify(settings));
   updateHeaderDisplay();
   syncPrint();
+  // Settings bleiben lokal (jeder Benutzer hat seine eigene Firmenkonfiguration)
 }
 
 function loadSettings() {
@@ -744,33 +930,183 @@ function loadSettings() {
 }
 
 // ═══════════════════════════════════════════════
+// Saved Offers
+// ═══════════════════════════════════════════════
+function saveOffer() {
+  const nr = v('offer-nr');
+  if (!nr) { alert('Bitte eine Offerten-Nummer eingeben.'); return; }
+
+  const snapshot = {
+    id: currentSavedId || Date.now(),
+    nr,
+    date:    v('c-date'),
+    valid:   v('c-valid'),
+    subject: v('c-subject'),
+    customer: {
+      name:    v('c-name'),
+      contact: v('c-contact'),
+      address: v('c-address'),
+      city:    v('c-city'),
+      email:   v('c-email')
+    },
+    positions: JSON.parse(JSON.stringify(positions)),
+    discount:  { val: v('disc-val'), type: v('disc-type') },
+    vatRate:   v('vat-rate'),
+    total:     parseFloat(document.getElementById('s-tot').textContent) || 0,
+    savedAt:   new Date().toISOString()
+  };
+
+  if (currentSavedId) {
+    const existing = savedOffers.find(o => o.id === currentSavedId);
+    snapshot.status = existing ? existing.status : 'offeriert';
+  } else {
+    snapshot.status = 'offeriert';
+    currentSavedId = snapshot.id;
+  }
+
+  setSyncing();
+  db.collection('savedOffers').doc(String(snapshot.id)).set(snapshot)
+    .then(setSynced).catch(setSyncError);
+  showSaveConfirmation();
+}
+
+function showSaveConfirmation() {
+  const btn = document.querySelector('.toolbar .btn-primary');
+  const orig = btn.textContent;
+  btn.textContent = '✓ Gespeichert';
+  btn.style.background = '#1a7c4e';
+  setTimeout(() => { btn.innerHTML = '&#x1F4BE; Speichern'; btn.style.background = ''; }, 1800);
+}
+
+function loadSavedOffer(id) {
+  const o = savedOffers.find(x => x.id === id);
+  if (!o) return;
+
+  // Populate customer fields
+  document.getElementById('c-name').value    = o.customer.name    || '';
+  document.getElementById('c-contact').value = o.customer.contact || '';
+  document.getElementById('c-address').value = o.customer.address || '';
+  document.getElementById('c-city').value    = o.customer.city    || '';
+  document.getElementById('c-email').value   = o.customer.email   || '';
+  document.getElementById('c-date').value    = o.date   || '';
+  document.getElementById('c-valid').value   = o.valid  || '';
+  document.getElementById('c-subject').value = o.subject || '';
+  document.getElementById('offer-nr').value  = o.nr;
+  document.getElementById('disc-val').value  = o.discount?.val  || 0;
+  document.getElementById('disc-type').value = o.discount?.type || 'pct';
+  document.getElementById('vat-rate').value  = o.vatRate || '8.1';
+
+  // Restore positions
+  positions = JSON.parse(JSON.stringify(o.positions || []));
+  posId = positions.length ? Math.max(...positions.map(p => p.id)) + 1 : 1;
+  renderPositions();
+
+  currentSavedId = id;
+  syncPrint();
+  showTab('offerte');
+}
+
+function deleteSavedOffer(id) {
+  if (!confirm('Offerte unwiderruflich löschen?')) return;
+  if (currentSavedId === id) currentSavedId = null;
+  setSyncing();
+  db.collection('savedOffers').doc(String(id)).delete().then(setSynced).catch(setSyncError);
+}
+
+function setOfferStatus(id, status) {
+  setSyncing();
+  db.collection('savedOffers').doc(String(id)).update({ status }).then(setSynced).catch(setSyncError);
+}
+
+function renderOfferList() {
+  const tbody = document.getElementById('offers-tbody');
+  const countEl = document.getElementById('offers-count');
+  const tabCount = document.getElementById('tab-count');
+  if (!tbody) return;
+
+  const fCust   = (document.getElementById('f-customer')?.value || '').toLowerCase();
+  const fStatus = document.getElementById('f-status')?.value || '';
+  const fSort   = document.getElementById('f-sort')?.value || 'date-desc';
+
+  let list = savedOffers.filter(o => {
+    if (fCust   && !(o.customer?.name || '').toLowerCase().includes(fCust)) return false;
+    if (fStatus && o.status !== fStatus) return false;
+    return true;
+  });
+
+  list.sort((a, b) => {
+    if (fSort === 'date-desc')     return new Date(b.date||0) - new Date(a.date||0);
+    if (fSort === 'date-asc')      return new Date(a.date||0) - new Date(b.date||0);
+    if (fSort === 'customer-asc')  return (a.customer?.name||'').localeCompare(b.customer?.name||'');
+    if (fSort === 'total-desc')    return (b.total||0) - (a.total||0);
+    if (fSort === 'total-asc')     return (a.total||0) - (b.total||0);
+    return 0;
+  });
+
+  // Update tab badge
+  if (tabCount) tabCount.textContent = savedOffers.length ? `(${savedOffers.length})` : '';
+  if (countEl)  countEl.textContent  = list.length !== savedOffers.length
+    ? `${list.length} von ${savedOffers.length} Offerten`
+    : `${savedOffers.length} Offerte${savedOffers.length !== 1 ? 'n' : ''}`;
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="offers-empty">${
+      savedOffers.length ? 'Keine Offerten entsprechen dem Filter.' : 'Noch keine Offerten gespeichert.'
+    }</td></tr>`;
+    return;
+  }
+
+  const statusLabels = { offeriert: 'Offeriert', akzeptiert: 'Akzeptiert', abgelehnt: 'Abgelehnt' };
+
+  tbody.innerHTML = list.map(o => {
+    const isLoaded = o.id === currentSavedId;
+    return `<tr${isLoaded ? ' style="background:#f0f6ff"' : ''}>
+      <td class="col-nr">${esc(o.nr)}${isLoaded ? ' <span style="font-size:.7rem;color:#2a5a8c">●</span>' : ''}</td>
+      <td class="col-date">${formatDateDE(o.date)}</td>
+      <td>${esc(o.customer?.name || '–')}</td>
+      <td style="color:#666;font-size:.85rem">${esc(o.subject || '–')}</td>
+      <td class="col-total">${Number(o.total).toFixed(2)}</td>
+      <td class="col-status">
+        <select class="status-select" onchange="setOfferStatus(${o.id}, this.value)" style="color:${
+          o.status==='akzeptiert'?'#1a7c4e':o.status==='abgelehnt'?'#c0392b':'#1a3a5c'}">
+          <option value="offeriert"  ${o.status==='offeriert' ?'selected':''}>Offeriert</option>
+          <option value="akzeptiert" ${o.status==='akzeptiert'?'selected':''}>Akzeptiert</option>
+          <option value="abgelehnt"  ${o.status==='abgelehnt' ?'selected':''}>Abgelehnt</option>
+        </select>
+      </td>
+      <td class="col-act">
+        <button class="btn btn-grey btn-sm" onclick="loadSavedOffer(${o.id})">Laden</button>
+        <button class="btn-del" onclick="deleteSavedOffer(${o.id})">&#x2715;</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
 // Customers
 // ═══════════════════════════════════════════════
 function saveCustomer() {
   const name = document.getElementById('cust-name').value.trim();
   if (!name) { alert('Bitte einen Namen eingeben.'); return; }
-  customers.push({
+  const customer = {
     id: Date.now(),
     name,
     contact: document.getElementById('cust-contact').value.trim(),
     address: document.getElementById('cust-address').value.trim(),
     city:    document.getElementById('cust-city').value.trim(),
     email:   document.getElementById('cust-email').value.trim()
-  });
-  localStorage.setItem('offerCustomers', JSON.stringify(customers));
+  };
   ['cust-name','cust-contact','cust-address','cust-city','cust-email'].forEach(id => {
     document.getElementById(id).value = '';
   });
-  renderCustomerList();
-  renderCustomerChips();
+  setSyncing();
+  db.collection('customers').doc(String(customer.id)).set(customer).then(setSynced).catch(setSyncError);
 }
 
 function deleteCustomer(id) {
   if (!confirm('Kunden aus dem Katalog entfernen?')) return;
-  customers = customers.filter(c => c.id !== id);
-  localStorage.setItem('offerCustomers', JSON.stringify(customers));
-  renderCustomerList();
-  renderCustomerChips();
+  setSyncing();
+  db.collection('customers').doc(String(id)).delete().then(setSynced).catch(setSyncError);
 }
 
 function loadCustomer(id) {
@@ -948,6 +1284,7 @@ function resetOffer() {
   if (!confirm('Neue Offerte erstellen? Aktuelle Eingaben gehen verloren.')) return;
   positions = [];
   posId = 1;
+  currentSavedId = null;
   ['c-name','c-contact','c-address','c-city','c-email','c-subject'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
